@@ -1,0 +1,121 @@
+unit: cafe
+order: 1
+title: At the café
+patterns:
+  - id: bonjour-monsieur
+    status: draft
+    frame: "Bonjour, {qui}."
+    en: "Hello, {qui}."
+    note: "Always say bonjour before asking for anything. Adding monsieur or madame makes it polite rather than abrupt."
+    slots:
+      qui:
+        - { fr: "monsieur", en: "sir", g: m }
+        - { fr: "madame", en: "madam", g: f }
+
+  - id: je-voudrais-noun
+    status: draft
+    frame: "Je voudrais {item}, s'il vous plaît."
+    en: "I would like {item}, please."
+    note: "Je voudrais (I would like) is the polite way to ask for something; je veux sounds demanding. Un café is an espresso: ask for un café crème if you want milk."
+    slots:
+      item:
+        - { fr: "un café", en: "a coffee", g: m }
+        - { fr: "un café crème", en: "a white coffee", g: m }
+        - { fr: "un thé", en: "a tea", g: m }
+        - { fr: "un chocolat chaud", en: "a hot chocolate", g: m }
+        - { fr: "une bière", en: "a beer", g: f }
+        - { fr: "un verre de vin rouge", en: "a glass of red wine", g: m }
+        - { fr: "un jus d'orange", en: "an orange juice", g: m }
+        - { fr: "un croissant", en: "a croissant", g: m }
+        - { fr: "une carafe d'eau", en: "a jug of tap water", g: f }
+
+  - id: deux-plural
+    status: draft
+    frame: "Deux {items}, s'il vous plaît."
+    en: "Two {items}, please."
+    note: "Most plurals add an -s, which is not pronounced: cafés sounds like café. Naming the number and the drink is enough to order."
+    slots:
+      items:
+        - { fr: "cafés", en: "coffees", g: m }
+        - { fr: "thés", en: "teas", g: m }
+        - { fr: "bières", en: "beers", g: f }
+        - { fr: "croissants", en: "croissants", g: m }
+        - { fr: "chocolats chauds", en: "hot chocolates", g: m }
+
+  - id: une-table-pour
+    status: draft
+    frame: "Une table pour {n}, s'il vous plaît."
+    en: "A table for {n}, please."
+    note: "Pour = for. Table is feminine, so it is une table."
+    slots:
+      n:
+        - { fr: "une personne", en: "one", g: f }
+        - { fr: "deux", en: "two" }
+        - { fr: "trois", en: "three" }
+        - { fr: "quatre", en: "four" }
+
+  - id: avez-vous
+    status: draft
+    frame: "Avez-vous {item} ?"
+    en: "Do you have {item}?"
+    note: "Swapping the verb and subject (vous avez → avez-vous) makes a polite question. Du, de la and des mean some."
+    slots:
+      item:
+        - { fr: "du lait", en: "milk", g: m }
+        - { fr: "du sucre", en: "sugar", g: m }
+        - { fr: "des croissants", en: "croissants", g: m }
+        - { fr: "le wifi", en: "wifi", g: m }
+
+  - id: sur-place-emporter
+    status: draft
+    frame: "C'est pour {ou}."
+    en: "It's {ou}."
+    note: "You will often be asked: sur place ou à emporter ? (eat in or take away?)."
+    slots:
+      ou:
+        - { fr: "sur place", en: "to eat in" }
+        - { fr: "à emporter", en: "to take away" }
+
+  - id: combien-coute
+    status: draft
+    frame: "Combien coûte {item} ?"
+    en: "How much is {item}?"
+    note: "Combien coûte… ? = how much does … cost? For the whole bill, just ask: c'est combien ?"
+    slots:
+      item:
+        - { fr: "un café", en: "a coffee", g: m }
+        - { fr: "une bière", en: "a beer", g: f }
+        - { fr: "un croissant", en: "a croissant", g: m }
+
+  - id: l-addition
+    status: draft
+    frame: "L'addition, s'il vous plaît."
+    en: "The bill, please."
+    note: "Waiters in France will not bring the bill until you ask for it; lingering is normal."
+
+  - id: je-peux-payer
+    status: draft
+    frame: "Je peux payer {comment} ?"
+    en: "Can I pay {comment}?"
+    note: "Je peux + verb = can I…? Saying it with a rising tone turns it into a question, with no other change."
+    slots:
+      comment:
+        - { fr: "par carte", en: "by card" }
+        - { fr: "en espèces", en: "in cash" }
+
+  - id: ou-sont-les-toilettes
+    status: draft
+    frame: "Où sont les toilettes ?"
+    en: "Where are the toilets?"
+    note: "Où sont… ? = where are…? Toilettes is always plural in French."
+
+  - id: merci-au-revoir
+    status: draft
+    frame: "Merci, {aurevoir}."
+    en: "Thank you, {aurevoir}."
+    note: "Bonne journée (have a good day) and bonne soirée (have a good evening) are the usual friendly goodbyes."
+    slots:
+      aurevoir:
+        - { fr: "au revoir", en: "goodbye" }
+        - { fr: "bonne journée", en: "have a good day" }
+        - { fr: "bonne soirée", en: "have a good evening" }
