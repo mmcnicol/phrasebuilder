@@ -16,9 +16,12 @@ import (
 	"github.com/mmcnicol/phrasebuilder/internal/store/migrations"
 )
 
-// testStore returns a store in a fresh, migrated schema that is dropped when
-// the test ends. It needs TEST_DATABASE_URL (a direct, not pooled, Neon dev
-// branch URL); without it the test is skipped.
+// testStore returns a store in a fresh, migrated database that is dropped
+// when the test ends. It needs TEST_DATABASE_URL (a Neon dev branch URL whose
+// role may create databases); without it the test is skipped.
+//
+// A separate database, not a schema: Neon's proxy ignores a search_path
+// set in the connection string.
 func testStore(t *testing.T) *Store {
 	t.Helper()
 	base := os.Getenv("TEST_DATABASE_URL")
@@ -26,17 +29,17 @@ func testStore(t *testing.T) *Store {
 		t.Skip("TEST_DATABASE_URL not set")
 	}
 	ctx := context.Background()
-	schema := fmt.Sprintf("test_%d", rand.Uint32())
+	name := fmt.Sprintf("test_%d", rand.Uint32())
 
 	admin, err := pgx.Connect(ctx, base)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := admin.Exec(ctx, "CREATE SCHEMA "+schema); err != nil {
+	if _, err := admin.Exec(ctx, "CREATE DATABASE "+name); err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
-		admin.Exec(context.Background(), "DROP SCHEMA "+schema+" CASCADE")
+		admin.Exec(context.Background(), "DROP DATABASE "+name+" WITH (FORCE)")
 		admin.Close(context.Background())
 	})
 
@@ -44,9 +47,7 @@ func testStore(t *testing.T) *Store {
 	if err != nil {
 		t.Fatal(err)
 	}
-	q := u.Query()
-	q.Set("search_path", schema)
-	u.RawQuery = q.Encode()
+	u.Path = "/" + name
 
 	if _, err := migrations.Up(ctx, u.String()); err != nil {
 		t.Fatal(err)
@@ -56,6 +57,12 @@ func testStore(t *testing.T) *Store {
 		t.Fatal(err)
 	}
 	t.Cleanup(s.Close)
+
+	// Guard against testing in the wrong database.
+	var current string
+	if err := s.pool.QueryRow(ctx, "SELECT current_database()").Scan(&current); err != nil || current != name {
+		t.Fatalf("connected to database %q, want %q (%v)", current, name, err)
+	}
 	return s
 }
 
