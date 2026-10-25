@@ -1,0 +1,22 @@
+{{define "title"}}{{.Unit.Title}} · Phrasebuilder{{end}}
+{{define "content"}}
+<p class="muted"><a href="/units">Units</a> · {{languageName .Unit.Language}}</p>
+<h1>{{.Unit.Title}}</h1>
+{{range .Patterns}}
+<section class="pattern" id="{{.ID}}">
+  <h2 lang="{{$.Unit.Language}}">{{frame .Frame}}</h2>
+  <p class="en">{{frame .En}}{{if eq .Status "draft"}} <span class="badge" title="Not yet checked by a native speaker">draft</span>{{end}}</p>
+  <p class="note">{{.Note}}</p>
+  <ul class="sentences">
+  {{range .Sentences}}
+    <li>
+      {{with audioURL .AudioPath}}<button type="button" class="play" data-audio="{{.}}" aria-label="Play">▶</button>{{end}}
+      <span lang="{{$.Unit.Language}}">{{.Text}}</span>
+      <span class="en">{{.En}}</span>
+    </li>
+  {{end}}
+  </ul>
+</section>
+{{end}}
+<script src="/static/app.js" defer></script>
+{{end}}

@@ -2,8 +2,12 @@
 //
 // Configuration is by environment variable, to suit Cloud Run:
 //
-//	PORT        listen port (default 8080)
-//	K_REVISION  build identifier shown by /health (set by Cloud Run)
+//	PORT            listen port (default 8080)
+//	K_REVISION      build identifier shown by /health (set by Cloud Run)
+//	DATABASE_URL    Postgres connection string; without it, content pages return 503
+//	AUDIO_BASE_URL  where audio files are served from; without it, no play buttons
+//
+// Locally, these can be put in a .env file.
 package main
 
 import (
@@ -16,6 +20,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
+
+	"github.com/mmcnicol/phrasebuilder/internal/store"
 	"github.com/mmcnicol/phrasebuilder/internal/web"
 )
 
@@ -25,8 +32,24 @@ func main() {
 		slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{ReplaceAttr: cloudLogging})))
 	}
 
+	godotenv.Load() // optional; real environment variables take precedence
+
 	port := cmpEnv("PORT", "8080")
-	h, err := web.New(web.Config{Revision: cmpEnv("K_REVISION", "dev")})
+	cfg := web.Config{
+		Revision:     cmpEnv("K_REVISION", "dev"),
+		AudioBaseURL: os.Getenv("AUDIO_BASE_URL"),
+	}
+	if url := os.Getenv("DATABASE_URL"); url != "" {
+		s, err := store.Open(context.Background(), url)
+		if err != nil {
+			fatal("open database", err)
+		}
+		defer s.Close()
+		cfg.Store = s
+	} else {
+		slog.Warn("DATABASE_URL not set; content pages are unavailable")
+	}
+	h, err := web.New(cfg)
 	if err != nil {
 		fatal("build site", err)
 	}

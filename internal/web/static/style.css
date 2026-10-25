@@ -36,3 +36,40 @@ button {
   color: var(--bg);
   cursor: pointer;
 }
+.muted, .en { color: var(--muted); }
+.units li { margin: 0.5rem 0; }
+.pattern { margin: 2rem 0; }
+.pattern h2 { font-size: 1.25rem; margin-bottom: 0.25rem; }
+.pattern .en { margin-top: 0; }
+.slot {
+  display: inline-block;
+  min-width: 2.5em;
+  border-bottom: 2px solid var(--accent);
+  color: var(--accent);
+  text-align: center;
+}
+.note {
+  border-left: 3px solid var(--accent);
+  padding-left: 0.75rem;
+}
+.badge {
+  font-size: 0.75rem;
+  border: 1px solid var(--muted);
+  border-radius: 0.25rem;
+  padding: 0 0.3rem;
+}
+.sentences { list-style: none; padding: 0; }
+.sentences li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 25%, transparent);
+}
+.sentences .en { flex-basis: 100%; padding-left: 2.75rem; font-size: 0.9375rem; }
+button.play {
+  width: 2.25rem;
+  padding: 0.25rem 0;
+  font-size: 0.875rem;
+}

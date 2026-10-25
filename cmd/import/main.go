@@ -31,6 +31,7 @@ import (
 	"github.com/mmcnicol/phrasebuilder/internal/audio"
 	"github.com/mmcnicol/phrasebuilder/internal/content"
 	"github.com/mmcnicol/phrasebuilder/internal/store"
+	"github.com/mmcnicol/phrasebuilder/internal/store/migrations"
 )
 
 const sampleText = "Bonjour madame. Je voudrais un café crème et un croissant, s'il vous plaît. Où sont les toilettes ?"
@@ -117,7 +118,7 @@ func load(ctx context.Context, c *content.Course) error {
 	if url == "" {
 		return fmt.Errorf("DATABASE_URL is not set (put it in .env)")
 	}
-	applied, err := store.Migrate(ctx, url)
+	applied, err := migrations.Up(ctx, url)
 	for _, m := range applied {
 		fmt.Printf("migrated: %s\n", m)
 	}

@@ -1,0 +1,13 @@
+{{define "title"}}Units · Phrasebuilder{{end}}
+{{define "content"}}
+<h1>Units</h1>
+{{if .Units}}
+<ol class="units">
+{{range .Units}}
+  <li><a href="/units/{{.ID}}">{{.Title}}</a> <span class="muted">{{languageName .Language}} · {{.PatternCount}} patterns</span></li>
+{{end}}
+</ol>
+{{else}}
+<p>No units have been loaded yet.</p>
+{{end}}
+{{end}}

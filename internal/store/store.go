@@ -1,30 +1,22 @@
 // Package store keeps course content (and later, learner state) in Postgres.
 //
 // Queries are in queries/*.sql and the Go code for them in db/ is generated
-// by sqlc (run `sqlc generate` after changing either). Migrations are in
-// migrations/*.sql and run by goose.
+// by sqlc (run `sqlc generate` after changing either). The schema is in
+// package migrations.
 package store
 
 import (
 	"context"
-	"database/sql"
-	"embed"
 	"errors"
 	"fmt"
-	"io/fs"
 	"sort"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	_ "github.com/jackc/pgx/v5/stdlib" // database/sql driver "pgx", for goose
-	"github.com/pressly/goose/v3"
 
 	"github.com/mmcnicol/phrasebuilder/internal/content"
 	"github.com/mmcnicol/phrasebuilder/internal/store/db"
 )
-
-//go:embed migrations/*.sql
-var migrations embed.FS
 
 // ErrNotFound is returned when a requested row does not exist.
 var ErrNotFound = errors.New("not found")
@@ -47,29 +39,6 @@ func Open(ctx context.Context, url string) (*Store, error) {
 
 // Close closes the store's connections.
 func (s *Store) Close() { s.pool.Close() }
-
-// Migrate brings the database schema up to date.
-func Migrate(ctx context.Context, url string) ([]string, error) {
-	sqlDB, err := sql.Open("pgx", url)
-	if err != nil {
-		return nil, err
-	}
-	defer sqlDB.Close()
-	fsys, err := fs.Sub(migrations, "migrations")
-	if err != nil {
-		return nil, err
-	}
-	p, err := goose.NewProvider(goose.DialectPostgres, sqlDB, fsys)
-	if err != nil {
-		return nil, err
-	}
-	results, err := p.Up(ctx)
-	var applied []string
-	for _, r := range results {
-		applied = append(applied, r.Source.Path)
-	}
-	return applied, err
-}
 
 // LoadStats counts what LoadCourse changed.
 type LoadStats struct {

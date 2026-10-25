@@ -13,6 +13,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/mmcnicol/phrasebuilder/internal/content"
+	"github.com/mmcnicol/phrasebuilder/internal/store/migrations"
 )
 
 // testStore returns a store in a fresh, migrated schema that is dropped when
@@ -47,7 +48,7 @@ func testStore(t *testing.T) *Store {
 	q.Set("search_path", schema)
 	u.RawQuery = q.Encode()
 
-	if _, err := Migrate(ctx, u.String()); err != nil {
+	if _, err := migrations.Up(ctx, u.String()); err != nil {
 		t.Fatal(err)
 	}
 	s, err := Open(ctx, u.String())
