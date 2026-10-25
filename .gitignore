@@ -31,3 +31,10 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+.env.*
+!.env.example
+*.pem
+*-key.json
+
+# Build output
+/bin/

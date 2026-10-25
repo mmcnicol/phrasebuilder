@@ -1,0 +1,7 @@
+# Files not uploaded by `gcloud run deploy --source`.
+.git
+.gitignore
+.env
+.env.*
+/bin/
+#!include:.gitignore
