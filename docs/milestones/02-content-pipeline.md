@@ -1,4 +1,13 @@
-# Milestone 2 – Content pipeline (plan)
+# Milestone 2 – Content pipeline
+
+**Status: done (2026-10-25).** Live at
+<https://phrasebuilder-532278562214.europe-west1.run.app/units>. Changes from
+the plan: the French voice is `fr-FR-Chirp3-HD-Kore` (chosen from samples); the
+store tests use a temporary database, not a schema, because Neon's proxy
+ignores `search_path` in the connection string; migrations live in their own
+package so the server binary doesn't include goose.
+
+The plan as written:
 
 Goal: write a French unit as YAML, check it, generate its audio, load it into
 Postgres, and **browse it on the live site with audio**. Ends in something
