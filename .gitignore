@@ -38,3 +38,4 @@ go.work.sum
 
 # Build output
 /bin/
+/voice-samples/
