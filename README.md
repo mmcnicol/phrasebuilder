@@ -4,7 +4,7 @@ A small Go web app for learning tourist-level French (later Italian and German)
 by drilling whole sentences built from patterns, with spaced repetition.
 See [docs/PROPOSAL.md](docs/PROPOSAL.md) for the plan.
 
-Status: milestone 1 (skeleton) — a server-rendered page with htmx, deployed to
+Status: milestone 1 (skeleton) done — a server-rendered page with htmx, deployed to
 Cloud Run.
 
 ## Running locally
@@ -33,13 +33,22 @@ It is configured by environment variable:
 
 ## Hosting
 
-Google Cloud project `phrasebuilder-prod`, region `europe-west1`, Cloud Run
-service `phrasebuilder`, served on its run.app URL (no custom domain yet).
+Google Cloud project `phrasebuilder-prod` (own billing account, £5 monthly
+budget alert), region `europe-west1`. Cloud Run service `phrasebuilder` is
+public at <https://phrasebuilder-532278562214.europe-west1.run.app> (no custom
+domain yet): 256 MiB, scale 0–3, startup probe on `/health`.
+
+Two service accounts, so the default compute account needs no roles:
+
+- `phrasebuilder-build` builds the image (`roles/run.builder`).
+- `phrasebuilder-run` runs the service (no roles yet; it will get Secret
+  Accessor on specific secrets).
 
 Deploy a new version from the repo (Cloud Build builds the Dockerfile):
 
 ```sh
-gcloud run deploy phrasebuilder --source . --region europe-west1 --project phrasebuilder-prod
+gcloud run deploy phrasebuilder --source . --region europe-west1 --project phrasebuilder-prod \
+  --build-service-account=projects/phrasebuilder-prod/serviceAccounts/phrasebuilder-build@phrasebuilder-prod.iam.gserviceaccount.com
 ```
 
 GitHub Actions runs `gofmt`, `go vet` and `go test` on every push.
