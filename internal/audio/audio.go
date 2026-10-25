@@ -24,7 +24,7 @@ type Voice struct {
 
 // Voices is the one fixed voice per course language.
 var Voices = map[string]Voice{
-	"fr": {LanguageCode: "fr-FR", Name: "fr-FR-Neural2-F"},
+	"fr": {LanguageCode: "fr-FR", Name: "fr-FR-Chirp3-HD-Kore"}, // chosen from samples, 2026-10-25
 }
 
 // Path is where the audio for text in a course language is stored, e.g.
