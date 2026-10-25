@@ -8,6 +8,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Card struct {
+	ID             int64
+	UserID         int64
+	SentenceID     string
+	Exercise       string
+	Due            pgtype.Timestamptz
+	Stability      float64
+	Difficulty     float64
+	ScheduledDays  int32
+	Reps           int32
+	Lapses         int32
+	State          int16
+	LastReview     pgtype.Timestamptz
+	RemainingSteps int32
+	CreatedAt      pgtype.Timestamptz
+}
+
 type Language struct {
 	Code string
 	Name string
@@ -22,6 +39,35 @@ type Pattern struct {
 	Note      string
 	Status    string
 	RetiredAt pgtype.Timestamptz
+}
+
+type ProblemReport struct {
+	ID         int64
+	UserID     int64
+	SentenceID string
+	Note       string
+	CreatedAt  pgtype.Timestamptz
+	ResolvedAt pgtype.Timestamptz
+}
+
+type ReviewLog struct {
+	ID                   int64
+	UserID               int64
+	CardID               int64
+	Rating               int16
+	ReviewedAt           pgtype.Timestamptz
+	ElapsedMs            int32
+	CreatedCard          bool
+	UnlockedCardID       pgtype.Int8
+	BeforeDue            pgtype.Timestamptz
+	BeforeStability      float64
+	BeforeDifficulty     float64
+	BeforeScheduledDays  int32
+	BeforeReps           int32
+	BeforeLapses         int32
+	BeforeState          int16
+	BeforeLastReview     pgtype.Timestamptz
+	BeforeRemainingSteps int32
 }
 
 type Sentence struct {
@@ -46,6 +92,11 @@ type Unit struct {
 	Position  int32
 	Title     string
 	RetiredAt pgtype.Timestamptz
+}
+
+type User struct {
+	ID        int64
+	CreatedAt pgtype.Timestamptz
 }
 
 type Word struct {
