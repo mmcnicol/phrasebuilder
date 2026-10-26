@@ -4,8 +4,10 @@ A small Go web app for learning tourist-level French (later Italian and German)
 by drilling whole sentences built from patterns, with spaced repetition.
 See [docs/PROPOSAL.md](docs/PROPOSAL.md) for the plan.
 
-Status: milestone 2 (content pipeline) done — unit 1 (at the café) can be
-browsed with audio at `/units`. See `docs/milestones/`.
+Status: milestone 3 (review loop) done — a daily review at `/review`
+(Recognise and Produce cards scheduled by FSRS), behind a passphrase until
+sign-in arrives. Unit 1 (at the café) can be browsed with audio at `/units`.
+See `docs/milestones/`.
 
 ## Running locally
 
@@ -24,6 +26,8 @@ file (copy `.env.example`):
 | `K_REVISION` | Build identifier shown by `/health` (Cloud Run sets it) |
 | `DATABASE_URL` | Postgres connection string; without it, `/units` returns 503 |
 | `AUDIO_BASE_URL` | Where audio is served from; without it, no play buttons |
+| `APP_PASSPHRASE` | Unlocks the review pages; without it, they return 503 |
+| `SESSION_KEY` | Base64 of 32+ random bytes; signs login cookies. Unset, a random key is used and logins last until restart |
 | `TEST_DATABASE_URL` | Neon dev branch; the store tests create and drop a temporary database there. Unset, they are skipped |
 
 ### URLs
@@ -34,8 +38,23 @@ file (copy `.env.example`):
 | `/greeting` | htmx partial used by the home page |
 | `/units` | Units |
 | `/units/<lang>/<unit>` | A unit's patterns, grammar notes and sentences, with audio |
+| `/login`, `/logout` | Passphrase login; sets a signed cookie for a year |
+| `/review` | Today's review, one card at a time (htmx posts to `/review/answer` and `/review/undo`) |
+| `/reports` | Open problem reports (posted from the review page) |
 | `/health` | Health check: `ok <revision>` (not `/healthz`, which Cloud Run reserves) |
-| `/static/*` | CSS, play-button script, and the vendored htmx (2.0.11) |
+| `/static/*` | CSS, `app.js` (play buttons, review shortcuts), and the vendored htmx (2.0.11) |
+
+`/review` and `/reports` need a login; everything else is public.
+
+## Reviews
+
+Scheduling is in `internal/srs` (go-fsrs v4, default parameters, fuzz on).
+The next card is worked out from the database on every request: due cards,
+then up to 5 new sentences a day from at most 2 new patterns, then learning
+cards due within 20 minutes, then done. A day starts at 4am UK time. A
+sentence starts with a Recognise card; its Produce card is added once the
+Recognise interval reaches 3 days. Every answer is logged with the card's
+previous state (`review_log`), so it can be undone.
 
 ## Content
 
@@ -77,17 +96,20 @@ domain yet): 256 MiB, scale 0–3, startup probe on `/health`.
   `database-url`); branch `dev` is for local work and tests.
 - Bucket `phrasebuilder-audio` (europe-west1, public read): MP3s from
   `cmd/import audio`, cached for a year.
-- Environment: `DATABASE_URL` from secret `database-url`;
+- Environment: `DATABASE_URL`, `APP_PASSPHRASE` and `SESSION_KEY` from
+  secrets `database-url`, `app-passphrase` and `session-key`;
   `AUDIO_BASE_URL=https://storage.googleapis.com/phrasebuilder-audio`.
+  Changing the passphrase (a new secret version, then a deploy) logs every
+  device out.
 
 Two service accounts, so the default compute account needs no roles:
 
 - `phrasebuilder-build` builds the image (`roles/run.builder`).
-- `phrasebuilder-run` runs the service; it can read secret `database-url`
-  and nothing else.
+- `phrasebuilder-run` runs the service; it can read those three secrets and
+  nothing else.
 
 Deploy a new version from the repo (Cloud Build builds the Dockerfile; the
-service keeps its environment, secret and runtime account):
+service keeps its environment, secrets and runtime account):
 
 ```sh
 gcloud run deploy phrasebuilder --source . --region europe-west1 --project phrasebuilder-prod \

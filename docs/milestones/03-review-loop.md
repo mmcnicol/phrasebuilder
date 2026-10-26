@@ -1,4 +1,25 @@
-# Milestone 3 – Review loop (plan)
+# Milestone 3 – Review loop
+
+**Status: done (2026-10-26).** Live at
+<https://phrasebuilder-532278562214.europe-west1.run.app/review>, revision
+`phrasebuilder-00003-x45`. Changes from the plan:
+
+- **2 new patterns a day**, not 1 (still at most 5 new sentences). Several
+  café patterns have only one or two sentences, so 1 pattern a day gave a
+  first session of 2 new sentences.
+- A Produce card starts the day after it unlocks, not straight away, so the
+  same sentence doesn't come up twice in a row.
+- Undo restores the card from the state saved in `review_log`, rather than
+  `fsrs.Rollback`, and only reaches back to today's answers.
+- "Done for today" is shown in place on `/review`, not on a separate page.
+- `users` has only `id` and `created_at`; display name and time zone wait
+  until something uses them (days start at 4am Europe/London for now).
+- Cross-site posts are blocked by Go's `http.CrossOriginProtection`, as well
+  as the SameSite cookie.
+- The passphrase is part of the cookie-signing key, so changing it logs every
+  device out.
+
+The plan as written:
 
 Goal: a daily session you actually use. Press **Start**, review what's due,
 meet a few new sentences, done in about 15 minutes, on laptop or phone.
@@ -118,3 +139,6 @@ counts, next new sentences, now), so it can be tested without a database.
 - Build, Swap and Type exercises: milestones 5–6.
 - FSRS parameter tuning from your own review log: after a month or two of data.
 - Daily reminders: phase 2.
+- Passkeys: after Google sign-in and once a domain is chosen (a passkey is
+  tied to its domain), added from a signed-in session with Google as the
+  recovery route.

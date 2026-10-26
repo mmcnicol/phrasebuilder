@@ -12,7 +12,9 @@ Go web app for learning languages through sentence patterns. Plan and milestones
 - Neon Postgres via pgx; queries in `internal/store/queries` → `sqlc generate` → committed `internal/store/db`. Web depends on the `ContentStore` interface, not the DB.
 - goose migrations in `internal/store/migrations` (run by `cmd/import load`, never by the server; the server must not import goose or Google Cloud libraries).
 - Audio: Text-to-Speech → bucket `phrasebuilder-audio`, content-addressed by voice + text (`internal/audio`).
-- Planned: go-fsrs, Google OIDC.
+- Reviews: `internal/srs` is pure scheduling (go-fsrs v4) over a snapshot; `internal/store/review.go` persists cards and `review_log`; web depends on the `ReviewStore` interface.
+- Login: passphrase + HMAC-signed cookie (`internal/web/auth.go`), until Google sign-in (milestone 4). CSRF: `http.CrossOriginProtection` + SameSite=Lax.
+- Planned: Google OIDC; passkeys after that, once a domain is chosen.
 
 ## Commands
 
