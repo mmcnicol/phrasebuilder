@@ -15,7 +15,7 @@ import (
 // Limits on new material. Constants until there is a settings page.
 const (
 	NewPerDay         = 5                // new sentences a day
-	NewPatternsPerDay = 1                // patterns those sentences may start
+	NewPatternsPerDay = 2                // patterns those sentences may start (some have only 1–2 sentences)
 	LearnAhead        = 20 * time.Minute // show learning cards this early once nothing else is left
 	ProduceAfterDays  = 3                // Recognise interval that unlocks a sentence's Produce card
 	dayStartHour      = 4                // a late-night session counts as the day before

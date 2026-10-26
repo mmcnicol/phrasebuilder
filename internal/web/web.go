@@ -12,6 +12,7 @@ import (
 	"html/template"
 	"io/fs"
 	"log/slog"
+	"math"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -44,18 +45,32 @@ type Config struct {
 	// https://storage.googleapis.com/phrasebuilder-audio. If empty, pages
 	// have no play buttons.
 	AudioBaseURL string
+	// Reviews keeps learners' cards. If nil, review pages return 503.
+	Reviews ReviewStore
+	// Passphrase unlocks the review pages. If empty, they return 503.
+	Passphrase string
+	// SessionKey signs login cookies. If empty, a random key is used.
+	SessionKey []byte
+	// Now is the clock; nil means time.Now.
+	Now func() time.Time
 }
 
 type server struct {
 	cfg   Config
+	auth  *auth // nil if there is no passphrase
+	now   func() time.Time
 	pages map[string]*template.Template
 }
 
 // New returns the app's HTTP handler.
 func New(cfg Config) (http.Handler, error) {
 	cfg.AudioBaseURL = strings.TrimRight(cfg.AudioBaseURL, "/")
-	s := &server{cfg: cfg}
-	pages, err := parsePages(files, s.funcs(), "home", "units", "unit", "error")
+	s := &server{cfg: cfg, now: cfg.Now}
+	if s.now == nil {
+		s.now = time.Now
+	}
+	s.auth = newAuth(cfg.Passphrase, cfg.SessionKey, s.now)
+	pages, err := parsePages(files, s.funcs(), "home", "units", "unit", "error", "login", "review", "reports")
 	if err != nil {
 		return nil, err
 	}
@@ -72,13 +87,25 @@ func New(cfg Config) (http.Handler, error) {
 	r.Get("/greeting", s.greeting)
 	r.Get("/units", s.units)
 	r.Get("/units/{lang}/{unit}", s.unit)
+	r.Get("/login", s.loginForm)
+	r.Post("/login", s.login)
+	r.Post("/logout", s.logout)
+	r.Group(func(r chi.Router) {
+		r.Use(s.requireUser)
+		r.Get("/review", s.review)
+		r.Post("/review/answer", s.answer)
+		r.Post("/review/undo", s.undo)
+		r.Get("/reports", s.reports)
+		r.Post("/reports", s.addReport)
+		r.Post("/reports/{id}/resolve", s.resolveReport)
+	})
 	// Not /healthz: Cloud Run reserves some paths ending in z.
 	r.Get("/health", s.health)
 	r.Handle("/static/*", http.StripPrefix("/static/", cacheStatic(http.FileServerFS(static))))
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		s.error(w, http.StatusNotFound, "Page not found.")
 	})
-	return r, nil
+	return http.NewCrossOriginProtection().Handler(r), nil
 }
 
 // parsePages builds one template set per page, each combining layout.html
@@ -111,6 +138,9 @@ func (s *server) funcs() template.FuncMap {
 			return template.HTML(slotRE.ReplaceAllString(html.EscapeString(f), `<span class="slot">…</span>`))
 		},
 		"languageName": func(code string) string { return content.Languages[code] },
+		"short":        short,
+		"until":        func(t, now time.Time) time.Duration { return t.Sub(now) },
+		"minutes":      func(d time.Duration) int { return int(math.Ceil(d.Minutes())) },
 	}
 }
 
@@ -119,6 +149,14 @@ func (s *server) render(w http.ResponseWriter, status int, page string, data any
 	w.WriteHeader(status)
 	if err := s.pages[page].ExecuteTemplate(w, "layout", data); err != nil {
 		slog.Error("render", "page", page, "err", err)
+	}
+}
+
+// fragment renders one template of a page, for htmx to swap in.
+func (s *server) fragment(w http.ResponseWriter, page, name string, data any) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := s.pages[page].ExecuteTemplate(w, name, data); err != nil {
+		slog.Error("render", "page", page, "template", name, "err", err)
 	}
 }
 

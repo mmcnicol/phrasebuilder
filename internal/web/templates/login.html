@@ -1,0 +1,13 @@
+{{define "title"}}Log in · Phrasebuilder{{end}}
+{{define "content"}}
+<h1>Log in</h1>
+{{with .Error}}<p class="error" role="alert">{{.}}</p>{{end}}
+<form method="post" action="/login" class="login">
+  <input type="hidden" name="next" value="{{.Next}}">
+  <input type="text" name="username" value="phrasebuilder" autocomplete="username" hidden>
+  <label for="passphrase">Passphrase</label>
+  <input type="password" id="passphrase" name="passphrase" autocomplete="current-password" required autofocus>
+  <button type="submit">Log in</button>
+</form>
+<p class="muted">You stay logged in on this device for a year.</p>
+{{end}}

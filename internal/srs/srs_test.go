@@ -38,8 +38,8 @@ func TestChoose(t *testing.T) {
 		{"new before ahead", Snapshot{Due: []Card{card(1, 5*time.Minute)}, New: news("a")}, Learn, "a0"},
 		{"ahead when no new left", Snapshot{Due: []Card{card(1, 5*time.Minute)}, NewToday: NewPerDay, New: news("a")}, Ahead, "1"},
 		{"done when allowance used", Snapshot{NewToday: NewPerDay, New: news("a")}, Done, ""},
-		{"no second new pattern", Snapshot{NewToday: 2, PatternsStartedToday: 1, New: news("b")}, Done, ""},
-		{"finish a started pattern", Snapshot{NewToday: 2, PatternsStartedToday: 1, New: news("+a", "b")}, Learn, "a0"},
+		{"pattern allowance used", Snapshot{NewToday: 2, PatternsStartedToday: NewPatternsPerDay, New: news("c")}, Done, ""},
+		{"finish a started pattern", Snapshot{NewToday: 2, PatternsStartedToday: NewPatternsPerDay, New: news("+b", "c")}, Learn, "b0"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -68,11 +68,11 @@ func TestNewLeft(t *testing.T) {
 		s    Snapshot
 		want int
 	}{
-		{"fresh day, one pattern", Snapshot{New: news("a", "a", "a", "b", "b")}, 3},
-		{"started pattern then a new one", Snapshot{New: news("+a", "+a", "b", "b", "b", "b")}, NewPerDay},
+		{"fresh day, two patterns", Snapshot{New: news("a", "b", "c", "c", "c")}, 2},
+		{"started pattern then new ones", Snapshot{New: news("+a", "+a", "b", "b", "b", "b")}, NewPerDay},
 		{"capped per day", Snapshot{New: news("a", "a", "a", "a", "a", "a", "a")}, NewPerDay},
 		{"some used today", Snapshot{NewToday: 3, PatternsStartedToday: 1, New: news("+a", "+a", "+a")}, 2},
-		{"pattern allowance used", Snapshot{NewToday: 1, PatternsStartedToday: 1, New: news("b", "b")}, 0},
+		{"pattern allowance used", Snapshot{NewToday: 2, PatternsStartedToday: NewPatternsPerDay, New: news("c", "c")}, 0},
 		{"over the limit", Snapshot{NewToday: NewPerDay + 2, New: news("a")}, 0},
 		{"course finished", Snapshot{}, 0},
 	}

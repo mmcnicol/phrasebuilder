@@ -29,8 +29,8 @@ func TestReviews(t *testing.T) {
 	if len(snap.Due) != 0 || len(snap.New) != 3 || snap.New[0].SentenceID != coffee || snap.New[0].PatternStarted {
 		t.Fatalf("first snapshot = %+v", snap)
 	}
-	if n := srs.NewLeft(snap); n != 2 {
-		t.Errorf("new left on day one = %d, want 2 (one pattern a day)", n)
+	if n := srs.NewLeft(snap); n != 3 {
+		t.Errorf("new left on day one = %d, want 3 (both patterns)", n)
 	}
 
 	it := mustItem(t, s, coffee, srs.Recognise, now)

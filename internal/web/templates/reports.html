@@ -1,0 +1,16 @@
+{{define "title"}}Reports · Phrasebuilder{{end}}
+{{define "content"}}
+<h1>Problem reports</h1>
+{{range .Reports}}
+<section class="report-item">
+  <p lang="fr"><strong>{{.Text}}</strong></p>
+  <p class="en">{{.En}}</p>
+  <p class="note">{{.Note}}</p>
+  <p class="muted small">{{.Created.Format "2 Jan 2006 15:04"}} · <a href="/units/{{.Unit}}">Unit page</a></p>
+  <form method="post" action="/reports/{{.ID}}/resolve"><button type="submit">Resolved</button></form>
+</section>
+{{else}}
+<p>No open reports.</p>
+{{end}}
+<p><a href="/review">Back to review</a></p>
+{{end}}

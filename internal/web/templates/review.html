@@ -1,0 +1,73 @@
+{{define "title"}}Review · Phrasebuilder{{end}}
+{{define "content"}}
+<div id="review" class="review" aria-live="polite">{{template "card" .}}</div>
+<p class="muted shortcuts">Keys: <kbd>Space</kbd> show answer · <kbd>1</kbd>–<kbd>4</kbd> grade · <kbd>P</kbd> play · <kbd>U</kbd> undo</p>
+<script src="/static/app.js" defer></script>
+{{end}}
+
+{{define "card"}}
+{{if .Item}}{{with .Item}}
+<p class="counts muted"><span>{{$.Due}} due</span> · <span>{{$.NewLeft}} new left</span>{{if $.Ahead}} · <span>learning ahead</span>{{end}}</p>
+<article class="card {{.Exercise}}" data-card>
+  {{if .NewPattern}}
+  <aside class="intro">
+    <p class="label">New pattern</p>
+    <p class="frame" lang="{{.Language}}">{{frame .Frame}}</p>
+    <p class="en">{{frame .PatternEn}}</p>
+    <p class="note">{{.Note}}</p>
+  </aside>
+  {{end}}
+  {{if eq .Exercise "produce"}}
+  <p class="label">Say it in {{languageName .Language}}, out loud</p>
+  <p class="prompt">{{.En}}</p>
+  <div class="answer" data-answer hidden>
+    <p class="said" lang="{{.Language}}">{{with audioURL .AudioPath}}<button type="button" class="play" data-audio="{{.}}" data-autoplay-reveal aria-label="Play">▶</button> {{end}}{{.Text}}</p>
+    <p class="note">{{.Note}}</p>
+  </div>
+  {{else}}
+  <p class="label">What does this mean?</p>
+  <p class="prompt" lang="{{.Language}}">{{with audioURL .AudioPath}}<button type="button" class="play" data-audio="{{.}}" data-autoplay aria-label="Play">▶</button> {{end}}{{.Text}}</p>
+  <div class="answer" data-answer hidden>
+    <p class="meaning">{{.En}}</p>
+    <p class="frame" lang="{{.Language}}">{{frame .Frame}}</p>
+    {{if not .NewPattern}}<p class="note">{{.Note}}</p>{{end}}
+  </div>
+  {{end}}
+  <div class="answer" data-answer hidden>
+    <p class="muted small">{{if eq .Status "draft"}}<span class="badge" title="Not yet checked by a native speaker">draft</span> {{end}}<a href="/units/{{.UnitID}}#{{.PatternID}}" target="_blank">Unit page</a></p>
+    <details class="report">
+      <summary>Report a problem</summary>
+      <form method="post" action="/reports" hx-post="/reports" hx-target="this" hx-swap="outerHTML">
+        <input type="hidden" name="sentence_id" value="{{.SentenceID}}">
+        <textarea name="note" rows="2" maxlength="2000" required placeholder="What's wrong?"></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </details>
+  </div>
+</article>
+<div class="actions">
+  <button type="button" class="reveal" data-reveal>Show answer</button>
+  <form class="grades" data-grades hidden method="post" action="/review/answer" hx-post="/review/answer" hx-target="#review" hx-sync="this:drop">
+    <input type="hidden" name="card_id" value="{{.ID}}">
+    <input type="hidden" name="sentence_id" value="{{.SentenceID}}">
+    <input type="hidden" name="reps" value="{{.Reps}}">
+    <input type="hidden" name="elapsed_ms" value="0">
+    {{range $.Grades}}<button type="submit" name="rating" value="{{.Rating}}" class="grade grade-{{.Rating}}">{{.Label}}<small>{{short .Interval}}</small></button>{{end}}
+  </form>
+</div>
+{{end}}{{else}}
+<section class="done">
+  <h1>Done for today</h1>
+  {{with .Today}}
+  <p>{{.Reviews}} review{{if ne .Reviews 1}}s{{end}}, {{.NewSentences}} new sentence{{if ne .NewSentences 1}}s{{end}}{{if .Elapsed}}, about {{minutes .Elapsed}} min{{end}}.</p>
+  {{if not .NextDue.IsZero}}{{$in := until .NextDue $.Now}}{{if gt $in 0}}<p>Next card due in {{short $in}}.</p>{{end}}{{end}}
+  {{end}}
+  <p><a href="/">Home</a> · <a href="/units">Units</a> · <a href="/reports">Reports</a></p>
+</section>
+{{end}}
+{{if .CanUndo}}
+<form class="undo" method="post" action="/review/undo" hx-post="/review/undo" hx-target="#review">
+  <button type="submit" class="link" data-undo>Undo last answer</button>
+</form>
+{{end}}
+{{end}}

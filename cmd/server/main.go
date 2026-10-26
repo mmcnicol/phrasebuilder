@@ -6,12 +6,16 @@
 //	K_REVISION      build identifier shown by /health (set by Cloud Run)
 //	DATABASE_URL    Postgres connection string; without it, content pages return 503
 //	AUDIO_BASE_URL  where audio files are served from; without it, no play buttons
+//	APP_PASSPHRASE  unlocks the review pages; without it, they return 503
+//	SESSION_KEY     base64, at least 32 random bytes, signs login cookies;
+//	                without it, logins last until the server restarts
 //
 // Locally, these can be put in a .env file.
 package main
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -38,6 +42,17 @@ func main() {
 	cfg := web.Config{
 		Revision:     cmpEnv("K_REVISION", "dev"),
 		AudioBaseURL: os.Getenv("AUDIO_BASE_URL"),
+		Passphrase:   os.Getenv("APP_PASSPHRASE"),
+	}
+	if k := os.Getenv("SESSION_KEY"); k != "" {
+		key, err := base64.StdEncoding.DecodeString(k)
+		if err != nil || len(key) < 32 {
+			fatal("SESSION_KEY", errors.New("must be base64 of at least 32 bytes"))
+		}
+		cfg.SessionKey = key
+	}
+	if cfg.Passphrase == "" {
+		slog.Warn("APP_PASSPHRASE not set; review pages are unavailable")
 	}
 	if url := os.Getenv("DATABASE_URL"); url != "" {
 		s, err := store.Open(context.Background(), url)
@@ -46,6 +61,7 @@ func main() {
 		}
 		defer s.Close()
 		cfg.Store = s
+		cfg.Reviews = s
 	} else {
 		slog.Warn("DATABASE_URL not set; content pages are unavailable")
 	}
